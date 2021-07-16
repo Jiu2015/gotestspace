@@ -76,7 +76,7 @@ func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
 
 	// Check the dir is or not exist
 	_, err := os.Stat(currentOption.workspacePath)
-	if os.IsExist(err) {
+	if err == nil {
 		return nil, fmt.Errorf("the path had existed, path: %s", currentOption.workspacePath)
 	}
 
