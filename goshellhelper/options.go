@@ -35,7 +35,7 @@ func WithTemplateOption(customTemplate string) CreateOption {
 }
 
 // WithEnvironmentsOption set environments
-func WithEnvironmentsOption(environments []string) CreateOption {
+func WithEnvironmentsOption(environments ...string) CreateOption {
 	return CreateOption{setOpt: func(opt *createOption) {
 		opt.environments = append(opt.environments, environments...)
 	}}
