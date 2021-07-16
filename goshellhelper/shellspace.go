@@ -42,7 +42,7 @@ func (w *WorkSpace) Cleanup() error {
 
 // GetPath get current workspace path
 func (w *WorkSpace) GetPath(subDirName string) (string, error) {
-	if strings.Contains(subDirName, ".") ||
+	if strings.Contains(subDirName, "..") ||
 		strings.Contains(subDirName, "&") ||
 		strings.Contains(subDirName, "|") {
 		return "", errors.New("the subDirName illegal")
