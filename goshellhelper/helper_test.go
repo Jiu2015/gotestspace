@@ -14,16 +14,16 @@ func TestExecuteCommand(t *testing.T) {
 	// Read system env
 	os.Setenv("GOSHELLHELPERTEST", "Just_for_test")
 	defer os.Unsetenv("GOSHELLHELPERTEST")
-	output, err := ExecuteCommand(context.Background(), "", nil, "env")
+	output, _, err := ExecuteCommand(context.Background(), "", nil, "env")
 	assert.NoError(err)
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test")
 
 	// Read set env
-	output, err = ExecuteCommand(context.Background(), "", []string{"GOSHELLHELPERTEST=Just_for_test123"}, "env")
+	output, _, err = ExecuteCommand(context.Background(), "", []string{"GOSHELLHELPERTEST=Just_for_test123"}, "env")
 	assert.NoError(err)
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test123")
 
-	_, err = ExecuteCommand(context.Background(), "", nil, "evn1111")
+	_, _, err = ExecuteCommand(context.Background(), "", nil, "evn1111")
 	if err == nil {
 		assert.Error(err)
 	}

@@ -3,12 +3,11 @@ package goshellhelper
 import (
 	"bytes"
 	"context"
-	"errors"
 	"os/exec"
 )
 
 // ExecuteCommand the execute cmd sample method
-func ExecuteCommand(ctx context.Context, path string, env []string, command string, args ...string) (output string, err error) {
+func ExecuteCommand(ctx context.Context, path string, env []string, command string, args ...string) (output string, outerr string, err error) {
 	var (
 		stdout,
 		stderr bytes.Buffer
@@ -24,12 +23,10 @@ func ExecuteCommand(ctx context.Context, path string, env []string, command stri
 
 	err = cmd.Run()
 	if err != nil {
-		return "", err
+		return "", string(stderr.Bytes()), err
 	}
 	output = string(stdout.Bytes())
-	errStr := string(stderr.Bytes())
-	if len(errStr) > 0 {
-		err = errors.New(errStr)
-	}
+	outerr = string(stderr.Bytes())
+
 	return
 }

@@ -18,6 +18,7 @@ type ShellSpace interface {
 	GetTemplateStr() string
 	GetShellStr() string
 	GetOutputStr() string
+	GetOutErr() string
 }
 
 // WorkSpace the repo struct
@@ -27,6 +28,7 @@ type WorkSpace struct {
 	template    string
 	customShell string
 	output      string
+	outErr      string
 }
 
 // Cleanup destroy the workspace path
@@ -69,6 +71,11 @@ func (w *WorkSpace) GetOutputStr() string {
 	return w.output
 }
 
+// GetOutErr get the error print
+func (w *WorkSpace) GetOutErr() string {
+	return w.outErr
+}
+
 // NewShellSpace create repo object
 func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
 	currentOption := mergeOptions(options)
@@ -88,7 +95,7 @@ func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
 
 	initGitWorkspace(currentOption.workspacePath)
 
-	output, err := ExecuteCommand(context.Background(), currentOption.workspacePath, currentOption.environments, "/bin/bash", "-c", mixedShell)
+	output, outErr, err := ExecuteCommand(context.Background(), currentOption.workspacePath, currentOption.environments, "/bin/bash", "-c", mixedShell)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +106,7 @@ func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
 		template:    currentOption.template,
 		customShell: currentOption.customShell,
 		output:      output,
+		outErr:      outErr,
 	}, nil
 
 }
@@ -107,7 +115,7 @@ func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
 func initGitWorkspace(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	_, err := ExecuteCommand(ctx, path, nil, "git", "init", ".")
+	_, _, err := ExecuteCommand(ctx, path, nil, "git", "init", ".")
 	if err != nil {
 		return err
 	}
