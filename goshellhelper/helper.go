@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"os"
 	"os/exec"
 )
 
@@ -20,7 +19,7 @@ func ExecuteCommand(ctx context.Context, path string, env []string, command stri
 	cmd.Stderr = &stderr
 	cmd.Dir = path
 	if len(env) != 0 {
-		cmd.Env = append(os.Environ(), env...)
+		cmd.Env = env
 	}
 
 	err = cmd.Run()

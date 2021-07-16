@@ -1,8 +1,10 @@
 package goshellhelper
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -20,9 +22,16 @@ type CreateOption struct {
 }
 
 // WithPathOption set the path
-func WithPathOption(path string) CreateOption {
+func WithPathOption(workPath string) CreateOption {
+	fullPath := workPath
+
+	if !strings.Contains(fullPath, "/") {
+		currentFolder, _ := os.Getwd()
+		fullPath = path.Join(currentFolder, workPath)
+	}
+
 	return CreateOption{setOpt: func(opt *createOption) {
-		opt.workspacePath = path
+		opt.workspacePath = fullPath
 	}}
 }
 
@@ -50,9 +59,10 @@ func WithShellOption(customShell string) CreateOption {
 
 func mergeOptions(options []CreateOption) *createOption {
 	currentPath, _ := os.Getwd()
+	tempWorkspacePath := path.Join(currentPath, time.Now().Format("20060102150405"))
 	o := &createOption{
 		// Default path
-		workspacePath: path.Join(currentPath, time.Now().Format("20060102150405")),
+		workspacePath: tempWorkspacePath,
 		template: `
 test_tick () {
         if test -z "${test_tick+set}"
@@ -78,6 +88,8 @@ test_tick () {
 	for _, opt := range options {
 		opt.setOpt(o)
 	}
+
+	o.environments = append([]string{fmt.Sprintf("HOME=%s", o.workspacePath)}, o.environments...)
 
 	return o
 }

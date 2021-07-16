@@ -1,12 +1,16 @@
 package goshellhelper
 
 import (
+	"fmt"
 	"os"
+	"path"
 	"reflect"
 	"testing"
 )
 
 func TestNewShellSpace(t *testing.T) {
+	currentPath, _ := os.Getwd()
+
 	type args struct {
 		options []CreateOption
 	}
@@ -24,8 +28,9 @@ func TestNewShellSpace(t *testing.T) {
 				},
 			},
 			want: &WorkSpace{
-				path: "tmp",
+				path: path.Join(currentPath, "tmp"),
 				env: []string{
+					fmt.Sprintf("HOME=%s/tmp", currentPath),
 					"GIT_AUTHOR_EMAIL=author@example.com",
 					"GIT_AUTHOR_NAME='A U Thor'",
 					"GIT_COMMITTER_EMAIL=committer@example.com",
@@ -58,8 +63,9 @@ test_tick () {
 				},
 			},
 			want: &WorkSpace{
-				path: "tmp",
+				path: path.Join(currentPath, "tmp"),
 				env: []string{
+					fmt.Sprintf("HOME=%s/tmp", currentPath),
 					"GIT_AUTHOR_EMAIL=author@example.com",
 					"GIT_AUTHOR_NAME='A U Thor'",
 					"GIT_COMMITTER_EMAIL=committer@example.com",
@@ -99,8 +105,9 @@ test(){
 				},
 			},
 			want: &WorkSpace{
-				path: "tmp",
+				path: path.Join(currentPath, "tmp"),
 				env: []string{
+					fmt.Sprintf("HOME=%s/tmp", currentPath),
 					"GIT_AUTHOR_EMAIL=author@example.com",
 					"GIT_AUTHOR_NAME='A U Thor'",
 					"GIT_COMMITTER_EMAIL=committer@example.com",
@@ -145,8 +152,9 @@ test(){
 				},
 			},
 			want: &WorkSpace{
-				path: "tmp",
+				path: path.Join(currentPath, "tmp"),
 				env: []string{
+					fmt.Sprintf("HOME=%s/tmp", currentPath),
 					"GIT_AUTHOR_EMAIL=author@example.com",
 					"GIT_AUTHOR_NAME='A U Thor'",
 					"GIT_COMMITTER_EMAIL=committer@example.com",
