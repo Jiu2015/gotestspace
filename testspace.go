@@ -19,6 +19,7 @@ type Space interface {
 	GetShellStr() string
 	GetOutputStr() string
 	GetOutErr() string
+	Execute(shell string) (stdout string, stderr string, _ error)
 }
 
 // workSpace the repo struct
@@ -76,10 +77,22 @@ func (w *workSpace) GetOutErr() string {
 	return w.outErr
 }
 
+func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error) {
+	mixedShell := w.template + shell
+	output, outErr, err := ExecuteCommand(context.Background(), w.path, w.env, "/bin/bash", "-c", mixedShell)
+	if err != nil {
+		return "", "", err
+	}
+
+	w.output = output
+	w.outErr = outErr
+
+	return output, outErr, nil
+}
+
 // Create create repo object
 func Create(options ...CreateOption) (Space, error) {
 	currentOption := mergeOptions(options)
-	mixedShell := currentOption.template + currentOption.customShell
 
 	// Check the dir is or not exist
 	_, err := os.Stat(currentOption.workspacePath)
@@ -95,20 +108,19 @@ func Create(options ...CreateOption) (Space, error) {
 
 	initGitWorkspace(currentOption.workspacePath)
 
-	output, outErr, err := ExecuteCommand(context.Background(), currentOption.workspacePath, currentOption.environments, "/bin/bash", "-c", mixedShell)
-	if err != nil {
-		return nil, err
-	}
-
-	return &WorkSpace{
+	space := &workSpace{
 		path:        currentOption.workspacePath,
 		env:         currentOption.environments,
 		template:    currentOption.template,
 		customShell: currentOption.customShell,
-		output:      output,
-		outErr:      outErr,
-	}, nil
+	}
 
+	_, _, err = space.Execute(currentOption.customShell)
+	if err != nil {
+		return nil, err
+	}
+
+	return space, nil
 }
 
 // Init the git workspace, to prevent source code edit by mistake
