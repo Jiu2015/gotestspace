@@ -13,7 +13,7 @@ import (
 // Space the repo action interface, contains repo action methods
 type Space interface {
 	Cleanup() error
-	GetPath(subDirName string) (string, error)
+	GetPath(subDirName string) string
 	GetEnvStr() []string
 	GetTemplateStr() string
 	GetShellStr() string
@@ -42,14 +42,16 @@ func (w *workSpace) Cleanup() error {
 }
 
 // GetPath get current workspace path
-func (w *WorkSpace) GetPath(subDirName string) (string, error) {
+func (w *workSpace) GetPath(subDirName string) string {
 	if strings.Contains(subDirName, "..") ||
 		strings.Contains(subDirName, "&") ||
 		strings.Contains(subDirName, "|") {
-		return "", errors.New("the subDirName illegal")
+
 	}
 
-	return path.Join(w.path, subDirName), nil
+	subDirName = strings.ReplaceAll(subDirName, "..", "")
+
+	return path.Join(w.path, subDirName)
 }
 
 // GetEnvStr get current environments string
