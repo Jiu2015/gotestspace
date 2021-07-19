@@ -2,8 +2,10 @@ package testspace
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -23,11 +25,29 @@ type CreateOption struct {
 
 // WithPathOption set the path
 func WithPathOption(workPath string) CreateOption {
-	fullPath := workPath
-
-	if !strings.Contains(fullPath, "/") {
-		currentFolder, _ := os.Getwd()
-		fullPath = path.Join(currentFolder, workPath)
+	var (
+		fullPath string
+		err      error
+	)
+	workPath = filepath.Clean(workPath)
+	basePath := filepath.Base(workPath)
+	dirPath := filepath.Dir(workPath)
+	if strings.Contains(basePath, "*") {
+		if filepath.IsAbs(dirPath) {
+			fullPath, err = ioutil.TempDir(dirPath, basePath)
+		} else {
+			fullPath, err = ioutil.TempDir("", workPath)
+		}
+	} else if !filepath.IsAbs(workPath) {
+		fullPath, err = os.Getwd()
+		if err == nil {
+			fullPath = path.Join(fullPath, workPath)
+		}
+	} else {
+		fullPath = workPath
+	}
+	if err != nil {
+		panic(err)
 	}
 
 	return CreateOption{setOpt: func(opt *createOption) {
