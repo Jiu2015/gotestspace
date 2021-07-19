@@ -3,7 +3,6 @@ package testspace
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -99,15 +98,12 @@ func Create(options ...CreateOption) (Space, error) {
 	currentOption := mergeOptions(options)
 
 	// Check the dir is or not exist
-	_, err := os.Stat(currentOption.workspacePath)
-	if err == nil {
-		return nil, fmt.Errorf("the path had existed, path: %s", currentOption.workspacePath)
-	}
-
-	// Create the workspace directory
-	err = os.MkdirAll(currentOption.workspacePath, 0755)
-	if err != nil {
-		return nil, err
+	if _, err := os.Stat(currentOption.workspacePath); err != nil {
+		// Create the workspace directory
+		err = os.MkdirAll(currentOption.workspacePath, 0755)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	initGitWorkspace(currentOption.workspacePath)
@@ -119,8 +115,7 @@ func Create(options ...CreateOption) (Space, error) {
 		customShell: currentOption.customShell,
 	}
 
-	_, _, err = space.Execute(currentOption.customShell)
-	if err != nil {
+	if _, _, err := space.Execute(currentOption.customShell); err != nil {
 		// If the command got error, then cleanup the temporary folder
 		space.Cleanup()
 		return space, err
