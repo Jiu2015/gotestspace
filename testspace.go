@@ -1,4 +1,4 @@
-package goshellhelper
+package testspace
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// ShellSpace the repo action interface, contains repo action methods
-type ShellSpace interface {
+// Space the repo action interface, contains repo action methods
+type Space interface {
 	Cleanup() error
 	GetPath(subDirName string) (string, error)
 	GetEnvStr() []string
@@ -76,8 +76,8 @@ func (w *WorkSpace) GetOutErr() string {
 	return w.outErr
 }
 
-// NewShellSpace create repo object
-func NewShellSpace(options ...CreateOption) (ShellSpace, error) {
+// Create create repo object
+func Create(options ...CreateOption) (Space, error) {
 	currentOption := mergeOptions(options)
 	mixedShell := currentOption.template + currentOption.customShell
 

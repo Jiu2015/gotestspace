@@ -1,4 +1,4 @@
-package goshellhelper
+package testspace
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func TestNewShellSpace(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    ShellSpace
+		want    Space
 		wantErr bool
 	}{
 		{
@@ -187,15 +187,15 @@ test(){
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewShellSpace(tt.args.options...)
+			got, err := Create(tt.args.options...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewShellSpace() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			defer got.Cleanup()
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewShellSpace() got = %v, want %v", got, tt.want)
+				t.Errorf("Create() got = %v, want %v", got, tt.want)
 			}
 
 			_, err = os.Stat("tmp/.git")

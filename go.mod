@@ -1,4 +1,4 @@
-module gitlab.alibaba-inc.com/agit/goshellhelper
+module gitlab.alibaba-inc.com/agit/gotestspace
 
 go 1.16
 

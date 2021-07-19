@@ -1,4 +1,4 @@
-package goshellhelper
+package testspace
 
 import (
 	"context"
