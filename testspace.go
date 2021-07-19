@@ -83,7 +83,9 @@ func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error
 	mixedShell := w.template + shell
 	output, outErr, err := ExecuteCommand(context.Background(), w.path, w.env, "/bin/bash", "-c", mixedShell)
 	if err != nil {
-		return "", "", err
+		w.output = output
+		w.outErr = outErr
+		return output, outErr, err
 	}
 
 	w.output = output
@@ -119,7 +121,9 @@ func Create(options ...CreateOption) (Space, error) {
 
 	_, _, err = space.Execute(currentOption.customShell)
 	if err != nil {
-		return nil, err
+		// If the command got error, then cleanup the temporary folder
+		space.Cleanup()
+		return space, err
 	}
 
 	return space, nil
