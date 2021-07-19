@@ -21,8 +21,8 @@ type Space interface {
 	GetOutErr() string
 }
 
-// WorkSpace the repo struct
-type WorkSpace struct {
+// workSpace the repo struct
+type workSpace struct {
 	path        string
 	env         []string
 	template    string
@@ -32,7 +32,7 @@ type WorkSpace struct {
 }
 
 // Cleanup destroy the workspace path
-func (w *WorkSpace) Cleanup() error {
+func (w *workSpace) Cleanup() error {
 	if len(w.path) == 0 {
 		return errors.New("the workspace path invalid, please check and delete it manually")
 	}
@@ -52,27 +52,27 @@ func (w *WorkSpace) GetPath(subDirName string) (string, error) {
 }
 
 // GetEnvStr get current environments string
-func (w *WorkSpace) GetEnvStr() []string {
+func (w *workSpace) GetEnvStr() []string {
 	return w.env
 }
 
 // GetTemplateStr get template string
-func (w *WorkSpace) GetTemplateStr() string {
+func (w *workSpace) GetTemplateStr() string {
 	return w.template
 }
 
 // GetShellStr get the shell which has been run
-func (w *WorkSpace) GetShellStr() string {
+func (w *workSpace) GetShellStr() string {
 	return w.customShell
 }
 
 // GetOutputStr get the shell output string
-func (w *WorkSpace) GetOutputStr() string {
+func (w *workSpace) GetOutputStr() string {
 	return w.output
 }
 
 // GetOutErr get the error print
-func (w *WorkSpace) GetOutErr() string {
+func (w *workSpace) GetOutErr() string {
 	return w.outErr
 }
 

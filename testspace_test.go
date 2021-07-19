@@ -27,7 +27,7 @@ func TestNewShellSpace(t *testing.T) {
 					WithPathOption("tmp"),
 				},
 			},
-			want: &WorkSpace{
+			want: &workSpace{
 				path: path.Join(currentPath, "tmp"),
 				env: []string{
 					fmt.Sprintf("HOME=%s/tmp", currentPath),
@@ -62,7 +62,7 @@ test_tick () {
 					WithEnvironmentsOption("goshelltest1=111", "goshelltest2=222"),
 				},
 			},
-			want: &WorkSpace{
+			want: &workSpace{
 				path: path.Join(currentPath, "tmp"),
 				env: []string{
 					fmt.Sprintf("HOME=%s/tmp", currentPath),
@@ -104,7 +104,7 @@ test(){
 `),
 				},
 			},
-			want: &WorkSpace{
+			want: &workSpace{
 				path: path.Join(currentPath, "tmp"),
 				env: []string{
 					fmt.Sprintf("HOME=%s/tmp", currentPath),
@@ -151,7 +151,7 @@ test(){
 					WithShellOption("test"),
 				},
 			},
-			want: &WorkSpace{
+			want: &workSpace{
 				path: path.Join(currentPath, "tmp"),
 				env: []string{
 					fmt.Sprintf("HOME=%s/tmp", currentPath),
