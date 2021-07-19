@@ -115,7 +115,9 @@ git clone test.git test &&
 )&&
 rm -rf test
 `)
-	assert.NoError(err, "create testspace got error")
+	if !assert.NoError(err, "create testspace got error") {
+		assert.FailNowf("create testspace got error", "%s", workspace.GetOutputStr())
+	}
 
 	// Now, let's check the bare repository
 	_, _, err = workspace.Execute(`cd test.git && git log --oneline`)
