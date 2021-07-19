@@ -1,10 +1,10 @@
-## goshellhelper
+## testspace
 
 ​		用来使用 go 能够快速创建 shell 执行的工作目录，以及自定义执行 shell 的工具。主要产生原因是因为以 satellite 为主的项目，需要使用 shell 来初始化测试用的仓库，但并没有太好的方法对 shell 进行统一的控制和调用，因此产生了这个辅助的项目。
 
 
 
-程序的主入口方法 `goshellhelper.NewShellSpace` ，这个方法调用时，会创建 shell 或者测试所需要用的工作区域，在这个区域中，会执行用户自定义执行的 shell，调用者可以直接使用 shell 来初始化仓库。这个方法支持的选项：
+程序的主入口方法 `testspace.Create` ，这个方法调用时，会创建 shell 或者测试所需要用的工作区域，在这个区域中，会执行用户自定义执行的 shell，调用者可以直接使用 shell 来初始化仓库。这个方法支持的选项：
 
 * WithPathOption：用来指定要执行的 shell 工作目录，需要指定一个空的目录，goshellhelper 会在上面创建目录，并在目录中进行 shell 执行
 * WithTemplateOption：这个是默认的 shell 模版，其中默认提供了 test_tick 的 shell 方法。当指定了这个 template 参数，则会以追加的方式添加新的 template，并不会覆盖 test_tick 方法。推荐将公共的方法放到这个 template 中
