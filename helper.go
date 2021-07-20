@@ -24,10 +24,10 @@ func ExecuteCommand(ctx context.Context, path string, env []string, command stri
 
 	err = cmd.Run()
 	if err != nil {
-		return "", string(stderr.Bytes()), err
+		return "", stderr.String(), err
 	}
-	output = string(stdout.Bytes())
-	outerr = string(stderr.Bytes())
+	output = stdout.String()
+	outerr = stderr.String()
 
 	return
 }
