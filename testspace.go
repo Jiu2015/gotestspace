@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -42,14 +43,10 @@ func (w *workSpace) Cleanup() error {
 
 // GetPath get current workspace path
 func (w *workSpace) GetPath(subDirName string) string {
-	if strings.Contains(subDirName, "..") ||
-		strings.Contains(subDirName, "&") ||
-		strings.Contains(subDirName, "|") {
-
+	subDirName = filepath.Clean(subDirName)
+	if strings.HasPrefix(subDirName, "../") {
+		subDirName = ""
 	}
-
-	subDirName = strings.ReplaceAll(subDirName, "..", "")
-
 	return path.Join(w.path, subDirName)
 }
 
