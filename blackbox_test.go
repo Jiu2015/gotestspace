@@ -1,4 +1,4 @@
-package example_test
+package testspace_test
 
 import (
 	"os"
