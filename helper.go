@@ -7,7 +7,8 @@ import (
 )
 
 // ExecuteCommand the execute cmd sample method
-func ExecuteCommand(ctx context.Context, path string, env []string, command string, args ...string) (output string, outerr string, err error) {
+func ExecuteCommand(ctx context.Context, path string, env []string, command string,
+	args ...string) (output string, outerr string, err error) {
 	var (
 		stdout,
 		stderr bytes.Buffer

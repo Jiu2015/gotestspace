@@ -109,7 +109,8 @@ test_tick () {
 		opt.setOpt(o)
 	}
 
-	o.environments = append([]string{fmt.Sprintf("HOME=%s", o.workspacePath)}, o.environments...)
+	o.environments = append([]string{fmt.Sprintf("HOME=%s", o.workspacePath)},
+		o.environments...)
 
 	return o
 }

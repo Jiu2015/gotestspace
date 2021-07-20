@@ -19,7 +19,9 @@ func TestExecuteCommand(t *testing.T) {
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test")
 
 	// Read set env
-	output, _, err = ExecuteCommand(context.Background(), "", []string{"GOSHELLHELPERTEST=Just_for_test123"}, "env")
+	output, _, err = ExecuteCommand(context.Background(), "",
+		[]string{"GOSHELLHELPERTEST=Just_for_test123"},
+		"env")
 	assert.NoError(err)
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test123")
 

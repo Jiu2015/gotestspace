@@ -80,7 +80,8 @@ func (w *workSpace) GetOutErr() string {
 
 func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error) {
 	mixedShell := w.template + shell
-	output, outErr, err := ExecuteCommand(context.Background(), w.path, w.env, "/bin/bash", "-c", mixedShell)
+	output, outErr, err := ExecuteCommand(context.Background(),
+		w.path, w.env, "/bin/bash", "-c", mixedShell)
 	if err != nil {
 		w.output = output
 		w.outErr = outErr
