@@ -59,7 +59,7 @@ func WithPathOption(workPath string) CreateOption {
 func WithTemplateOption(customTemplate string) CreateOption {
 	return CreateOption{setOpt: func(opt *createOption) {
 		// The template will append the default template which init test_tick function
-		opt.template = opt.template + "" + customTemplate
+		opt.template = opt.template + "\n" + customTemplate
 	}}
 }
 

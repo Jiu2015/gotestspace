@@ -128,6 +128,7 @@ test_tick () {
         export GIT_COMMITTER_DATE GIT_AUTHOR_DATE
 }
 
+
 test(){
 	echo hello
 }
@@ -174,6 +175,7 @@ test_tick () {
         GIT_AUTHOR_DATE="$test_tick -0700"
         export GIT_COMMITTER_DATE GIT_AUTHOR_DATE
 }
+
 
 test(){
 	echo hello
