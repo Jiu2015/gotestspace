@@ -77,7 +77,10 @@ func (w *workSpace) GetOutErr() string {
 
 func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error) {
 	mixedShell := w.template + "\n" + shell
-	output, outErr, err := ExecuteCommand(context.Background(),
+	// The default timeout is 5 seconds, in test, do not execute shell more than 5 seconds.
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	output, outErr, err := SimpleExecuteCommand(timeoutCtx,
 		w.path, w.env, "/bin/bash", "-c", mixedShell)
 	if err != nil {
 		w.output = output
@@ -126,7 +129,7 @@ func Create(options ...CreateOption) (Space, error) {
 func initGitWorkspace(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	_, _, err := ExecuteCommand(ctx, path, nil, "git", "init", ".")
+	_, _, err := SimpleExecuteCommand(ctx, path, nil, "git", "init", ".")
 	if err != nil {
 		return err
 	}
