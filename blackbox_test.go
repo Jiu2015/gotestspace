@@ -132,3 +132,64 @@ rm -rf test
 	assert.Equal("95dbed8 this is the second commit\n5a1f64b this is the first commit",
 		strings.TrimSpace(workspace.GetOutputStr()))
 }
+
+// Test use stdin to delete bare repository branch
+func TestDeleteBareRepositoryBranch(t *testing.T) {
+	assert := assert.New(t)
+	// The "test_tick" is the default method in template
+	workspace, err := testspace.Create(
+		testspace.WithShellOption(`
+git init --bare test.git &&
+git clone test.git test && 
+(
+	cd test && 
+	printf "this is a test">init.js &&
+	git add init.js &&
+	test_tick &&
+	git commit -m "this is the first commit" &&
+	git push &&
+	printf "the js file content">resource.js &&
+	git add resource.js &&
+	test_tick &&
+	git commit -m "the second commit" && 
+	git branch branch1 &&
+	printf "the go file">main.go &&
+	git add main.go &&
+	test_tick &&
+	git commit -m "the third commit" &&
+	git branch branch2 &&
+	git push --all
+) &&
+rm -rf test
+`))
+	if !assert.NoError(err) {
+		assert.FailNowf("create testspace got error", "%v", err)
+	}
+	defer workspace.Cleanup()
+
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	command, err := workspace.ExecuteWithStdin(cancelCtx, "cd test.git && git update-ref --stdin")
+	if !assert.NoError(err) {
+		assert.FailNowf("execute with stdin got error", "%v", err)
+	}
+
+	// Start delete branch1
+	command.Write([]byte("delete refs/heads/branch1\n"))
+
+	// Start delete branch2
+	command.Write([]byte("delete refs/heads/branch2\n"))
+
+	if err = command.Wait(); !assert.NoError(err) {
+		assert.FailNowf("execute with stdin got error", "%v", err)
+	}
+
+	// Let's check all the branches
+	stdout, _, err := workspace.Execute(cancelCtx, "cd test.git && git branch --format=\"%(refname)\"")
+	if !assert.NoError(err) {
+		assert.FailNowf("execute git command got error", "%s", err)
+	}
+
+	assert.Equal("refs/heads/master\n", stdout)
+}
