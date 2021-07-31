@@ -1,17 +1,31 @@
-## testspace
+## gotestspace
 
-​		用来使用 go 能够快速创建 shell 执行的工作目录，以及自定义执行 shell 的工具。主要产生原因是因为以 satellite 为主的项目，需要使用 shell 来初始化测试用的仓库，但并没有太好的方法对 shell 进行统一的控制和调用，因此产生了这个辅助的项目。
+gotestspace is used to quickly create a working directory for shell execution using go, as well as a tool for customizing the execution of the shell. It can help you quickly create an independent workspace for unit testing, improve the efficiency of unit test writing, and improve the happiness of developers.		
 
+When Go projects are closely related to Linux and need to use bash shell to do some initialization or query functions, Go projects will be troublesome and repetitive to write `exec.Command` . The purpose of gotestspace is to quickly create test temp directories and execute various bash commands or shell scripts in the test temp directories to help improve the efficiency of writing unit tests.	
 
+The main entry method of the program `testspace.Create`, when this method is called, creates a shell or a workspace that the test needs to use, in which a user-defined shell is executed and the caller can use the shell directly to initialize the repository. This method supports the following options:
 
-程序的主入口方法 `testspace.Create` ，这个方法调用时，会创建 shell 或者测试所需要用的工作区域，在这个区域中，会执行用户自定义执行的 shell，调用者可以直接使用 shell 来初始化仓库。这个方法支持的选项：
+* WithPathOption: Used to specify the shell working directory to be executed, you need to specify an empty directory, goshellhelper will create a directory on it, and shell execution will be done in the directory
+* WithTemplateOption: This is the default shell template, which provides the shell method for test_tick by default. When this template parameter is specified, a new template will be added as an append and will not override the test_tick method. It is recommended to put the public methods in this template
 
-* WithPathOption：用来指定要执行的 shell 工作目录，需要指定一个空的目录，goshellhelper 会在上面创建目录，并在目录中进行 shell 执行
-* WithTemplateOption：这个是默认的 shell 模版，其中默认提供了 test_tick 的 shell 方法。当指定了这个 template 参数，则会以追加的方式添加新的 template，并不会覆盖 test_tick 方法。推荐将公共的方法放到这个 template 中
+```shell
+test_tick () {
+        if test -z "${test_tick+set}"
+        then
+                test_tick=1112911993
+        else
+                test_tick=$(($test_tick + 60))
+        fi
+        GIT_COMMITTER_DATE="$test_tick -0700"
+        GIT_AUTHOR_DATE="$test_tick -0700"
+        export GIT_COMMITTER_DATE GIT_AUTHOR_DATE
+}
+```
 
-注： test_tick：这个方法在创建仓库提交的时候，可以帮助我们将创建者和提交者的时间进行重置，确保提交号一致，方便进行快速 git 方面测试
+**Note: test_tick: This method helps us reset the creator and committer time when creating a repository commit, ensuring that the commit number is the same and facilitating a quick git side test**
 
-* WithEnvironmentsOption：用来添加自定义的环境变量，如果不指定，那么会默认提供几个环境变量：
+* WithEnvironmentsOption: Used to add custom environment variables, if not specified, then several environment variables will be provided by default:
 
 ```shell
 GIT_AUTHOR_EMAIL=author@example.com
@@ -20,8 +34,38 @@ GIT_COMMITTER_EMAIL=committer@example.com
 GIT_COMMITTER_NAME='C O Mitter'
 ```
 
-* WithShellOption：用户自定义添加的要执行的 shell，如初始化仓库的 shell 代码等等
+* WithShellOption: user-defined shell to be executed, such as shell code for initializing the repository, etc.
 
 
 
-在使用过程中，如果不提供 options ，则所有值都有其默认值，其中工作区域中，会创建 .git 目录，用来防止在工作区中做 git 的其他操而对我们真正源码仓库产生影响，如 git reset 命令等。
+When using Create directly, a temporary directory is created and the specified shell command is executed, and there are two ways to execute the shell in the already created workspace object:
+
+* Execute: Execute the shell directly and return the standard output, standard errors, and error from go execution, for simple command execution
+
+* ExecuteWithStdin: returns a pointer to a command object, which implements io.
+
+
+
+During the creation process, gotestspace also adds a .git directory to the temporary directory to prevent dangerous git commands (such as git reset) from affecting the current project in the test area, so feel free to use it.
+
+### How to use
+
+* blackbox_test.go
+
+As the naming of the file, this is a black-box test, also in the Go project, the namespace is not consistent with the current project, one more '_test', then here can only call the Go when the export method, so it is called as a black-box unit test for Go.
+
+```go
+package testspace_test
+
+import (
+	"context"
+	"os"
+	"path"
+  ......
+```
+
+This file contains basic usage methods that can be used as a reference on how to use gotestspace
+
+* example Directory
+
+This directory shows how to integrate unit tests in Go, using techniques such as TestMain and SubTest
