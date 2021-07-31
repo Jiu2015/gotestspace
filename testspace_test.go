@@ -200,7 +200,7 @@ test(){
 				t.Errorf("Create() got = %v, want %v", got, tt.want)
 			}
 
-			_, err = os.Stat("tmp/.git")
+			_, err = os.Stat(got.GetPath(".git"))
 			if err != nil {
 				t.Error("git init failed")
 			}
