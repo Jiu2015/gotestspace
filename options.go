@@ -20,7 +20,7 @@ type createOption struct {
 
 // CreateOption the option for create shell workspace
 type CreateOption struct {
-	setOpt func(opt *createOption)
+	setOpt func(opt *createOption) error
 }
 
 // WithPathOption set the path
@@ -46,38 +46,44 @@ func WithPathOption(workPath string) CreateOption {
 	} else {
 		fullPath = workPath
 	}
-	if err != nil {
-		panic(err)
-	}
 
-	return CreateOption{setOpt: func(opt *createOption) {
+	return CreateOption{setOpt: func(opt *createOption) error {
 		opt.workspacePath = fullPath
+		if err != nil {
+			return fmt.Errorf("the WithPathOption invalid: %v", err)
+		}
+
+		return nil
 	}}
 }
 
 // WithTemplateOption set custom template
 func WithTemplateOption(customTemplate string) CreateOption {
-	return CreateOption{setOpt: func(opt *createOption) {
+	return CreateOption{setOpt: func(opt *createOption) error {
 		// The template will append the default template which init test_tick function
 		opt.template = opt.template + "\n" + customTemplate
+		return nil
 	}}
 }
 
 // WithEnvironmentsOption set environments
 func WithEnvironmentsOption(environments ...string) CreateOption {
-	return CreateOption{setOpt: func(opt *createOption) {
+	return CreateOption{setOpt: func(opt *createOption) error {
 		opt.environments = append(opt.environments, environments...)
+		return nil
 	}}
 }
 
 // WithShellOption set custom shell from user
 func WithShellOption(customShell string) CreateOption {
-	return CreateOption{setOpt: func(opt *createOption) {
+	return CreateOption{setOpt: func(opt *createOption) error {
 		opt.customShell = customShell
+		return nil
 	}}
 }
 
 func mergeOptions(options []CreateOption) *createOption {
+	var err error
 	currentPath, _ := os.Getwd()
 	tempWorkspacePath := path.Join(currentPath, time.Now().Format("20060102150405"))
 	o := &createOption{
@@ -106,7 +112,10 @@ test_tick () {
 	}
 
 	for _, opt := range options {
-		opt.setOpt(o)
+		err = opt.setOpt(o)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	o.environments = append([]string{fmt.Sprintf("HOME=%s", o.workspacePath)},
