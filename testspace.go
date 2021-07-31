@@ -19,7 +19,11 @@ type Space interface {
 	GetShellStr() string
 	GetOutputStr() string
 	GetOutErr() string
-	Execute(shell string) (stdout string, stderr string, _ error)
+	Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error)
+
+	// Will enable stdin ont the command, you can do a lot of advanced things.
+	// WARNING: You must call command.Wait() method after you operate command!
+	ExecuteWithStdin(ctx context.Context, shell string) (*command, error)
 }
 
 // workSpace the repo struct
@@ -75,12 +79,9 @@ func (w *workSpace) GetOutErr() string {
 	return w.outErr
 }
 
-func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error) {
+func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error) {
 	mixedShell := w.template + "\n" + shell
-	// The default timeout is 5 seconds, in test, do not execute shell more than 5 seconds.
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	output, outErr, err := SimpleExecuteCommand(timeoutCtx,
+	output, outErr, err := SimpleExecuteCommand(ctx,
 		w.path, w.env, "/bin/bash", "-c", mixedShell)
 	if err != nil {
 		w.output = output
@@ -92,6 +93,12 @@ func (w *workSpace) Execute(shell string) (stdout string, stderr string, _ error
 	w.outErr = outErr
 
 	return output, outErr, nil
+}
+
+func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (*command, error) {
+	mixedShell := w.template + "\n" + shell
+	return NewTestSpaceCommand(ctx, w.path, w.env, true, nil, nil,
+		"/bin/bash", "-c", mixedShell)
 }
 
 // Create create repo object
@@ -116,7 +123,10 @@ func Create(options ...CreateOption) (Space, error) {
 		customShell: currentOption.customShell,
 	}
 
-	if _, _, err := space.Execute(currentOption.customShell); err != nil {
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if _, _, err := space.Execute(cancelCtx, currentOption.customShell); err != nil {
 		// If the command got error, then cleanup the temporary folder
 		space.Cleanup()
 		return space, err

@@ -1,6 +1,7 @@
 package test_main_example
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -11,7 +12,9 @@ import (
 // which has core.abbrev settings in global git config settings.
 // Will show abbrev commit ID in 10 digits.
 func TestGitLogInTestSpaceEnv(t *testing.T) {
-	stdout, _, err := myTestSpace.Execute("git -C workdir log --oneline master --")
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	stdout, _, err := myTestSpace.Execute(cancelCtx, "git -C workdir log --oneline master --")
 	assert.Nil(t, err)
 	expect := strings.Join([]string{
 		"b475dff771 B",

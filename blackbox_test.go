@@ -1,6 +1,7 @@
 package testspace_test
 
 import (
+	"context"
 	"os"
 	"path"
 	"strings"
@@ -102,8 +103,11 @@ rm -rf test
 	}
 	defer workspace.Cleanup()
 
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// Let's add the second commit, running custom shell again
-	_, _, err = workspace.Execute(`
+	_, _, err = workspace.Execute(cancelCtx, `
 git clone test.git test && 
 (
 	cd test && 
@@ -120,7 +124,7 @@ rm -rf test
 	}
 
 	// Now, let's check the bare repository
-	_, _, err = workspace.Execute(`cd test.git && git log --oneline`)
+	_, _, err = workspace.Execute(cancelCtx, "cd test.git && git log --oneline")
 	if !assert.NoError(err) {
 		assert.FailNowf("create testspace got error", "%v", err)
 	}
