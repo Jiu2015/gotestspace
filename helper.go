@@ -1,33 +1,62 @@
 package testspace
 
 import (
-	"bytes"
 	"context"
+	"io"
+	"io/ioutil"
 	"os/exec"
 )
 
-// ExecuteCommand the execute cmd sample method
-func ExecuteCommand(ctx context.Context, path string, env []string, command string,
-	args ...string) (output string, outerr string, err error) {
-	var (
-		stdout,
-		stderr bytes.Buffer
-	)
+// SimpleExecuteCommand the execute cmd sample method
+func SimpleExecuteCommand(ctx context.Context, path string, env []string, commandName string,
+	args ...string) (output string, outErr string, err error) {
+	cmd := exec.Command(commandName, args...)
 
-	cmd := exec.CommandContext(ctx, command, args...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Dir = path
-	if len(env) != 0 {
-		cmd.Env = env
+	if len(path) > 0 {
+		cmd.Dir = path
 	}
 
-	err = cmd.Run()
+	spaceCommand, err := new(ctx, cmd, nil, nil, nil, env...)
 	if err != nil {
-		return "", stderr.String(), err
+		return "", "", err
 	}
-	output = stdout.String()
-	outerr = stderr.String()
 
-	return
+	cmdStdout, err := ioutil.ReadAll(spaceCommand)
+	if err != nil {
+		return "", "", err
+	}
+	output = string(cmdStdout)
+
+	if spaceCommand.stderr != nil {
+		outErr = string(spaceCommand.stderr.GetStderr())
+	}
+
+	if err = cmd.Wait(); err != nil {
+		return "", "", err
+	}
+
+	return output, outErr, err
+}
+
+// NewTestSpaceCommand will return space-command for advantage use,
+// You must get stdin, stdout and stderr before spaceCommand.Wait(), and do not miss spaceCommand.Wait()
+func NewTestSpaceCommand(ctx context.Context, path string, env []string, enableStdin bool, stdout, stderr io.Writer,
+	commandName string, args ...string) (*command, error) {
+	var tempStdin io.Reader
+	cmd := exec.Command(commandName, args...)
+
+	if len(path) > 0 {
+		cmd.Dir = path
+	}
+
+	if enableStdin {
+		tempStdin = setStdinType
+	}
+
+	spaceCommand, err := new(ctx, cmd, tempStdin, stdout, stderr, env...)
+	if err != nil {
+		return nil, err
+	}
+
+	return spaceCommand, nil
 }
