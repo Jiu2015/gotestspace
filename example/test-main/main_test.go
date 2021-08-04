@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	testspace "gitlab.alibaba-inc.com/agit/gotestspace"
+	testspace "github.com/Jiu2015/gotestspace"
 )
 
 var myTestSpace testspace.Space

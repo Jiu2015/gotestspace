@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	testspace "github.com/Jiu2015/gotestspace"
 	"github.com/stretchr/testify/assert"
-	testspace "gitlab.alibaba-inc.com/agit/gotestspace"
 )
 
 var myTestSpace testspace.Space
