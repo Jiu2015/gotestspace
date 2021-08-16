@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -117,6 +118,11 @@ func Create(options ...CreateOption) (Space, error) {
 
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if _, fn, _, ok := runtime.Caller(1); ok {
+		space.env = append(space.env, "CALLER="+fn)
+		space.env = append(space.env, "CALLER_DIR="+filepath.Dir(fn))
+	}
 
 	if _, _, err := space.Execute(cancelCtx, currentOption.customShell); err != nil {
 		// If the command got error, then cleanup the temporary folder

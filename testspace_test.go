@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewShellSpace(t *testing.T) {
@@ -189,18 +190,26 @@ test(){
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Create(tt.args.options...)
+			actual, err := Create(tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			defer got.Cleanup()
+			defer actual.Cleanup()
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Create() got = %v, want %v", got, tt.want)
+			assert.Equal(t, tt.want.GetPath(""), actual.GetPath(""))
+			assert.Equal(t, tt.want.GetTemplateStr(), actual.GetTemplateStr())
+			envs1 := tt.want.GetEnvStr()
+			envs2 := actual.GetEnvStr()
+			if assert.True(t,
+				len(envs1) <= len(envs2),
+				"actual envs less than expect envs") {
+				for i := range envs1 {
+					assert.Equal(t, envs1[i], envs2[i])
+				}
+
 			}
-
-			_, err = os.Stat(got.GetPath(".git"))
+			_, err = os.Stat(actual.GetPath(".git"))
 			if err != nil {
 				t.Error("git init failed")
 			}
