@@ -1,6 +1,7 @@
 package testspace
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"io/ioutil"
@@ -16,14 +17,16 @@ func SimpleExecuteCommand(ctx context.Context, path string, env []string, comman
 		cmd.Dir = path
 	}
 
-	spaceCommand, err := new(ctx, cmd, nil, nil, nil, env...)
+	stderr := &bytes.Buffer{}
+
+	spaceCommand, err := new(ctx, cmd, nil, nil, stderr, env...)
 	if err != nil {
-		return "", "", err
+		return "", stderr.String(), err
 	}
 
 	cmdStdout, err := ioutil.ReadAll(spaceCommand)
 	if err != nil {
-		return "", "", err
+		return "", stderr.String(), err
 	}
 	output = string(cmdStdout)
 
@@ -32,7 +35,7 @@ func SimpleExecuteCommand(ctx context.Context, path string, env []string, comman
 	}
 
 	if err = cmd.Wait(); err != nil {
-		return "", "", err
+		return output, stderr.String(), err
 	}
 
 	return output, outErr, err

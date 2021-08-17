@@ -21,19 +21,18 @@ func TestExecuteCommand(t *testing.T) {
 	assert.NoError(err)
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test")
 
-	cancelCtx2, cancel2 := context.WithCancel(context.Background())
-	defer cancel2()
-	// Read set env
-	output, _, err = SimpleExecuteCommand(cancelCtx2, "",
+	output, _, err = SimpleExecuteCommand(cancelCtx1, "",
 		[]string{"GOSHELLHELPERTEST=Just_for_test123"},
 		"env")
 	assert.NoError(err)
 	assert.Contains(output, "GOSHELLHELPERTEST=Just_for_test123")
 
-	cancelCtx3, cancel3 := context.WithCancel(context.Background())
-	defer cancel3()
-	_, _, err = SimpleExecuteCommand(cancelCtx3, "", nil, "evn1111")
+	_, _, err = SimpleExecuteCommand(cancelCtx1, "", nil, "evn1111")
 	if err == nil {
 		assert.Error(err)
 	}
+
+	_, stderr, err := SimpleExecuteCommand(cancelCtx1, "", nil, "git", "aaa")
+	assert.Error(err)
+	assert.Contains(stderr, "git --help")
 }

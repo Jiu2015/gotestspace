@@ -83,16 +83,8 @@ func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, s
 	mixedShell := w.template + "\n" + shell
 	output, outErr, err := SimpleExecuteCommand(ctx,
 		w.path, w.env, "/bin/bash", "-c", mixedShell)
-	if err != nil {
-		w.output = output
-		w.outErr = outErr
-		return output, outErr, err
-	}
 
-	w.output = output
-	w.outErr = outErr
-
-	return output, outErr, nil
+	return output, outErr, err
 }
 
 func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (*command, error) {
