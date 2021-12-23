@@ -104,6 +104,7 @@ func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, s
 	return output, outErr, err
 }
 
+// ExecuteWithStdin execute shell with stdin
 func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (*command, error) {
 	mixedShell := w.template + "\n" + shell
 	return NewTestSpaceCommand(ctx, w.path, w.env, true, nil, nil,
@@ -123,7 +124,9 @@ func Create(options ...CreateOption) (Space, error) {
 		}
 	}
 
-	initGitWorkspace(currentOption.workspacePath)
+	if err := initGitWorkspace(currentOption.workspacePath); err != nil {
+		return nil, err
+	}
 
 	space := &workSpace{
 		path:        currentOption.workspacePath,
