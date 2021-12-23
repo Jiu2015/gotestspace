@@ -1,6 +1,7 @@
 package testspace
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -212,6 +213,185 @@ test(){
 			_, err = os.Stat(actual.GetPath(".git"))
 			if err != nil {
 				t.Error("git init failed")
+			}
+		})
+	}
+}
+
+func Test_workSpace_RegistrationCustomCleaner(t *testing.T) {
+	type fields struct {
+		path        string
+		env         []string
+		template    string
+		customShell string
+		output      string
+		outErr      string
+		cleaners    []CustomCleaner
+	}
+	type args struct {
+		cleaners []CustomCleaner
+	}
+	tests := []struct {
+		name        string
+		fields      fields
+		args        args
+		expectCount int
+	}{
+		{
+			name: "add_nil",
+			fields: fields{
+				cleaners: nil,
+			},
+			args: args{
+				cleaners: nil,
+			},
+			expectCount: 0,
+		}, {
+			name:   "add_one",
+			fields: fields{},
+			args: args{
+				cleaners: []CustomCleaner{
+					func() error {
+						return nil
+					},
+				},
+			},
+			expectCount: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &workSpace{
+				path:        tt.fields.path,
+				env:         tt.fields.env,
+				template:    tt.fields.template,
+				customShell: tt.fields.customShell,
+				output:      tt.fields.output,
+				outErr:      tt.fields.outErr,
+				cleaners:    tt.fields.cleaners,
+			}
+			w.RegistrationCustomCleaner(tt.args.cleaners...)
+
+			if len(w.cleaners) != tt.expectCount {
+				t.Errorf("the cleanner count invalid, expected: %d, acture: %d", tt.expectCount, len(w.cleaners))
+			}
+		})
+	}
+}
+
+func Test_workSpace_Cleanup(t *testing.T) {
+	tmpPath := func() string {
+		s, err := os.MkdirTemp("", "test*")
+		if err != nil {
+			panic(err)
+		}
+
+		return s
+	}()
+
+	// Just used for cleaner
+	var tmpNum int
+
+	type fields struct {
+		path        string
+		env         []string
+		template    string
+		customShell string
+		output      string
+		outErr      string
+		cleaners    []CustomCleaner
+	}
+	tests := []struct {
+		name        string
+		fields      fields
+		wantErr     bool
+		expectCheck func() bool
+	}{
+		{
+			name: "no_customer_cleaner",
+			fields: fields{
+				path: tmpPath,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "no_path",
+			fields:  fields{},
+			wantErr: true,
+		},
+		{
+			name: "with_cleaner",
+			fields: fields{
+				path: tmpPath,
+				cleaners: []CustomCleaner{
+					func() error {
+						tmpNum = 100
+						return nil
+					},
+				},
+			},
+			wantErr: false,
+			expectCheck: func() bool {
+				return tmpNum == 100
+			},
+		},
+		{
+			name: "with_multiple_cleaner",
+			fields: fields{
+				path: tmpPath,
+				cleaners: []CustomCleaner{
+					func() error {
+						tmpNum = 100
+						return nil
+					},
+					func() error {
+						tmpNum += 100
+						return nil
+					},
+				},
+			},
+			wantErr: false,
+			expectCheck: func() bool {
+				return tmpNum == 200
+			},
+		},
+		{
+			name: "one_cleaner_error",
+			fields: fields{
+				path: tmpPath,
+				cleaners: []CustomCleaner{
+					func() error {
+						tmpNum = 100
+						return nil
+					},
+					func() error {
+						return errors.New("something went wrong")
+					},
+				},
+			},
+			wantErr:     true,
+			expectCheck: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &workSpace{
+				path:        tt.fields.path,
+				env:         tt.fields.env,
+				template:    tt.fields.template,
+				customShell: tt.fields.customShell,
+				output:      tt.fields.output,
+				outErr:      tt.fields.outErr,
+				cleaners:    tt.fields.cleaners,
+			}
+			if err := w.Cleanup(); err != nil != tt.wantErr {
+				t.Errorf("got error: %v", err)
+			}
+
+			if tt.expectCheck != nil {
+				if !tt.expectCheck() {
+					t.Error("the cleaner invalid")
+				}
 			}
 		})
 	}

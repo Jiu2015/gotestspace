@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// CustomCleaner the customer cleaners for registration
+type CustomCleaner func() error
+
 // Space the repo action interface, contains repo action methods
 type Space interface {
 	Cleanup() error
@@ -26,6 +29,10 @@ type Space interface {
 	// ExecuteWithStdin Will enable stdin on the command, you can do a lot of advanced things.
 	// WARNING: You must call command.Wait() method after you operate command!
 	ExecuteWithStdin(ctx context.Context, shell string) (*command, error)
+
+	// RegistrationCustomCleaner used for registration the cleaners func for clean other resources
+	// while the testing finished
+	RegistrationCustomCleaner(cleaners ...CustomCleaner)
 }
 
 // workSpace the repo struct
@@ -36,6 +43,7 @@ type workSpace struct {
 	customShell string
 	output      string
 	outErr      string
+	cleaners    []CustomCleaner
 }
 
 // Cleanup destroy the workspace path
@@ -44,7 +52,17 @@ func (w *workSpace) Cleanup() error {
 		return errors.New("the workspace path invalid, please check and delete it manually")
 	}
 
-	return os.RemoveAll(w.path)
+	if err := os.RemoveAll(w.path); err != nil {
+		return err
+	}
+
+	for _, c := range w.cleaners {
+		if err := c(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GetPath get current workspace path
@@ -109,6 +127,11 @@ func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (*comman
 	mixedShell := w.template + "\n" + shell
 	return NewTestSpaceCommand(ctx, w.path, w.env, true, nil, nil,
 		"/bin/bash", "-c", mixedShell)
+}
+
+// RegistrationCustomCleaner register the custom cleaners for clean
+func (w *workSpace) RegistrationCustomCleaner(cleaners ...CustomCleaner) {
+	w.cleaners = append(w.cleaners, cleaners...)
 }
 
 // Create create repo object
