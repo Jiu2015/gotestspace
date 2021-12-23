@@ -15,6 +15,7 @@ import (
 type Space interface {
 	Cleanup() error
 	GetPath(subDirName string) string
+	GetMultiPath(subDirNames ...string) string
 	GetEnvStr() []string
 	GetTemplateStr() string
 	GetShellStr() string
@@ -22,7 +23,7 @@ type Space interface {
 	GetOutErr() string
 	Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error)
 
-	// Will enable stdin ont the command, you can do a lot of advanced things.
+	// ExecuteWithStdin Will enable stdin on the command, you can do a lot of advanced things.
 	// WARNING: You must call command.Wait() method after you operate command!
 	ExecuteWithStdin(ctx context.Context, shell string) (*command, error)
 }
@@ -52,7 +53,22 @@ func (w *workSpace) GetPath(subDirName string) string {
 	if strings.HasPrefix(subDirName, "../") {
 		subDirName = ""
 	}
+
 	return path.Join(w.path, subDirName)
+}
+
+// GetMultiPath get the multiple path with path.Join
+func (w *workSpace) GetMultiPath(subDirNames ...string) string {
+	tmpPathNames := make([]string, 0, len(subDirNames)+1)
+	tmpPathNames = append(tmpPathNames, w.path)
+
+	for _, s := range subDirNames {
+		if !strings.HasPrefix(s, "../") {
+			tmpPathNames = append(tmpPathNames, s)
+		}
+	}
+
+	return path.Join(tmpPathNames...)
 }
 
 // GetEnvStr get current environments string
