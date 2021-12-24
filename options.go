@@ -16,6 +16,7 @@ type createOption struct {
 	template      string
 	environments  []string
 	customShell   string
+	cleaners      []CustomCleaner
 }
 
 // CreateOption the option for create shell workspace
@@ -80,6 +81,15 @@ func WithShellOption(customShell string) CreateOption {
 		opt.customShell = customShell
 		return nil
 	}}
+}
+
+// WithCleanersOption set the custom cleaners
+func WithCleanersOption(cleaners ...CustomCleaner) CreateOption {
+	return CreateOption{
+		setOpt: func(opt *createOption) error {
+			opt.cleaners = append(opt.cleaners, cleaners...)
+			return nil
+		}}
 }
 
 func mergeOptions(options []CreateOption) *createOption {
