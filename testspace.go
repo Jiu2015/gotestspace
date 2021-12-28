@@ -3,6 +3,7 @@ package testspace
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -167,10 +168,10 @@ func Create(options ...CreateOption) (Space, error) {
 		space.env = append(space.env, "CALLER_DIR="+filepath.Dir(fn))
 	}
 
-	if _, _, err := space.Execute(cancelCtx, currentOption.customShell); err != nil {
+	if _, stderr, err := space.Execute(cancelCtx, currentOption.customShell); err != nil {
 		// If the command got error, then cleanup the temporary folder
 		space.Cleanup()
-		return space, err
+		return space, fmt.Errorf("err: %s, stderr: %s", err, stderr)
 	}
 
 	return space, nil
@@ -180,9 +181,9 @@ func Create(options ...CreateOption) (Space, error) {
 func initGitWorkspace(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	_, _, err := SimpleExecuteCommand(ctx, path, nil, "git", "init", ".")
+	_, stderr, err := SimpleExecuteCommand(ctx, path, nil, "git", "init", ".")
 	if err != nil {
-		return err
+		return fmt.Errorf("err: %s, stderr: %s", err, stderr)
 	}
 
 	return nil
