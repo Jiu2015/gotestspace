@@ -156,6 +156,7 @@ func Create(options ...CreateOption) (Space, error) {
 		env:         currentOption.environments,
 		template:    currentOption.template,
 		customShell: currentOption.customShell,
+		cleaners:    currentOption.cleaners,
 	}
 
 	cancelCtx, cancel := context.WithCancel(context.Background())
