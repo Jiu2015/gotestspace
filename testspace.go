@@ -25,6 +25,9 @@ type Space interface {
 	GetShellStr() string
 	GetOutputStr() string
 	GetOutErr() string
+
+	// Execute the command.
+	// The error may be testspace.Error type, so please use type assertions or use errors.As
 	Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error)
 
 	// ExecuteWithStdin Will enable stdin on the command, you can do a lot of advanced things.
@@ -115,6 +118,8 @@ func (w *workSpace) GetOutErr() string {
 	return w.outErr
 }
 
+// Execute the command
+// The error may be testspace.Error type, so please use type assertions or use errors.As
 func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error) {
 	mixedShell := w.template + "\n" + shell
 	output, outErr, err := SimpleExecuteCommand(ctx,

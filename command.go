@@ -48,10 +48,24 @@ func (c *command) wait() {
 	c.waitErr = c.cmd.Wait()
 }
 
+// Wait waits the command exit and wait the stdin, stdout
+// The error may be testspace.Error type, so please use type assertions or use errors.As
 func (c *command) Wait() error {
+	var (
+		err       error
+		exitError *exec.ExitError
+	)
+
 	c.waitOnce.Do(c.wait)
 
-	return c.waitErr
+	err = c.waitErr
+	if errors.As(err, &exitError) {
+		exitError.ExitCode()
+		// Wrap error to testspace.Error
+		err = NewGoTestSpaceError(exitError.ExitCode(), "", string(c.stderr.GetStderr()), err)
+	}
+
+	return err
 }
 
 // The command use to check to set stdin type
@@ -137,7 +151,7 @@ func new(ctx context.Context, cmd *exec.Cmd, stdin io.Reader, stdout, stderr io.
 		<-ctx.Done()
 
 		if process := cmd.Process; process != nil && process.Pid > 0 {
-			// Kill the the process and it's child process
+			// Kill the process and it's child process
 			syscall.Kill(-process.Pid, syscall.SIGKILL)
 		}
 	}()

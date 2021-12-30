@@ -3,12 +3,14 @@ package testspace
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os/exec"
 )
 
-// SimpleExecuteCommand the execute cmd sample method
+// SimpleExecuteCommand to execute cmd sample method.
+// The error may be testspace.Error type, so please use type assertions or use errors.As
 func SimpleExecuteCommand(ctx context.Context, path string, env []string, commandName string,
 	args ...string) (output string, outErr string, err error) {
 	cmd := exec.Command(commandName, args...)
@@ -35,6 +37,13 @@ func SimpleExecuteCommand(ctx context.Context, path string, env []string, comman
 	}
 
 	if err = cmd.Wait(); err != nil {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			exitError.ExitCode()
+			// Wrap error to testspace.Error
+			err = NewGoTestSpaceError(exitError.ExitCode(), output, stderr.String(), err)
+		}
+
 		return output, stderr.String(), err
 	}
 

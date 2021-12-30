@@ -1,4 +1,4 @@
-package test_main_example
+package testmain
 
 import (
 	"os"
@@ -14,6 +14,10 @@ func TestMain(m *testing.M) {
 
 	myTestSpace, err = testspace.Create(
 		testspace.WithPathOption("testspace-*"),
+		testspace.WithCleanersOption(func() error {
+			// Add custom clean functions
+			return nil
+		}),
 		testspace.WithShellOption(`
 			git config --global core.abbrev 10 &&
 			git config --global init.defaultBranch master &&
@@ -37,6 +41,12 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	defer myTestSpace.Cleanup()
+
+	// You could register the other cleaner, it will be called while myTestSpace.Cleanup() running
+	myTestSpace.RegistrationCustomCleaner(func() error {
+		// Other custom action
+		return nil
+	})
 
 	res := m.Run()
 	os.Exit(res)

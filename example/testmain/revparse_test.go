@@ -1,4 +1,4 @@
-package test_main_example
+package testmain
 
 import (
 	"os/exec"
