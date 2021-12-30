@@ -30,11 +30,9 @@ func SimpleExecuteCommand(ctx context.Context, path string, env []string, comman
 	if err != nil {
 		return "", stderr.String(), err
 	}
-	output = string(cmdStdout)
 
-	if spaceCommand.stderr != nil {
-		outErr = string(spaceCommand.stderr.GetStderr())
-	}
+	output = string(cmdStdout)
+	outErr = spaceCommand.GetStderr()
 
 	if err = cmd.Wait(); err != nil {
 		var exitError *exec.ExitError
@@ -53,7 +51,7 @@ func SimpleExecuteCommand(ctx context.Context, path string, env []string, comman
 // NewTestSpaceCommand will return space-command for advantage use,
 // You must get stdin, stdout and stderr before spaceCommand.Wait(), and do not miss spaceCommand.Wait()
 func NewTestSpaceCommand(ctx context.Context, path string, env []string, enableStdin bool, stdout, stderr io.Writer,
-	commandName string, args ...string) (*command, error) {
+	commandName string, args ...string) (Commander, error) {
 	var tempStdin io.Reader
 	cmd := exec.Command(commandName, args...)
 

@@ -31,7 +31,7 @@ type Space interface {
 
 	// ExecuteWithStdin Will enable stdin on the command, you can do a lot of advanced things.
 	// WARNING: You must call command.Wait() method after you operate command!
-	ExecuteWithStdin(ctx context.Context, shell string) (*command, error)
+	ExecuteWithStdin(ctx context.Context, shell string) (Commander, error)
 
 	// RegistrationCustomCleaner used for registration the cleaners func for clean other resources
 	// while the testing finished
@@ -129,7 +129,7 @@ func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, s
 }
 
 // ExecuteWithStdin execute shell with stdin
-func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (*command, error) {
+func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (Commander, error) {
 	mixedShell := w.template + "\n" + shell
 	return NewTestSpaceCommand(ctx, w.path, w.env, true, nil, nil,
 		"/bin/bash", "-c", mixedShell)

@@ -10,6 +10,13 @@ import (
 	"syscall"
 )
 
+// Commander use execute command
+type Commander interface {
+	Read(p []byte) (int, error)
+	Write(p []byte) (int, error)
+	Wait() error
+	GetStderr() string
+}
 type command struct {
 	reader   io.Reader
 	writer   io.WriteCloser
@@ -68,6 +75,15 @@ func (c *command) Wait() error {
 	return err
 }
 
+// GetStderr get command stderr
+func (c *command) GetStderr() string {
+	if c.stderr == nil {
+		return ""
+	}
+
+	return string(c.stderr.GetStderr())
+}
+
 // The command use to check to set stdin type
 var setStdinType io.Reader = setStdin{}
 
@@ -94,7 +110,7 @@ func (s *stdErr) GetStderr() []byte {
 	return s.errContents
 }
 
-func new(ctx context.Context, cmd *exec.Cmd, stdin io.Reader, stdout, stderr io.Writer, env ...string) (*command, error) {
+func new(ctx context.Context, cmd *exec.Cmd, stdin io.Reader, stdout, stderr io.Writer, env ...string) (Commander, error) {
 	if ctx.Done() == nil {
 		panic("the context must have Done() method, use WithCancel, WithTimeout etc.")
 	}
