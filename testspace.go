@@ -3,7 +3,6 @@ package testspace
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -121,11 +120,12 @@ func (w *workSpace) GetOutErr() string {
 // Execute the command
 // The error may be testspace.Error type, so please use type assertions or use errors.As
 func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, stderr string, _ error) {
+	var err error
 	mixedShell := w.template + "\n" + shell
-	output, outErr, err := SimpleExecuteCommand(ctx,
+	w.output, w.outErr, err = SimpleExecuteCommand(ctx,
 		w.path, w.env, "/bin/bash", "-c", mixedShell)
 
-	return output, outErr, err
+	return w.output, w.outErr, err
 }
 
 // ExecuteWithStdin execute shell with stdin
@@ -142,10 +142,14 @@ func (w *workSpace) RegistrationCustomCleaner(cleaners ...CustomCleaner) {
 
 // Create create repo object
 func Create(options ...CreateOption) (Space, error) {
+	var (
+		err error
+	)
+
 	currentOption := mergeOptions(options)
 
 	// Check the dir is or not exist
-	if _, err := os.Stat(currentOption.workspacePath); err != nil {
+	if _, err = os.Stat(currentOption.workspacePath); err != nil {
 		// Create the workspace directory
 		err = os.MkdirAll(currentOption.workspacePath, 0755)
 		if err != nil {
@@ -153,7 +157,7 @@ func Create(options ...CreateOption) (Space, error) {
 		}
 	}
 
-	if err := initGitWorkspace(currentOption.workspacePath); err != nil {
+	if err = initGitWorkspace(currentOption.workspacePath); err != nil {
 		return nil, err
 	}
 
@@ -173,10 +177,11 @@ func Create(options ...CreateOption) (Space, error) {
 		space.env = append(space.env, "CALLER_DIR="+filepath.Dir(fn))
 	}
 
-	if _, stderr, err := space.Execute(cancelCtx, currentOption.customShell); err != nil {
+	space.output, space.outErr, err = space.Execute(cancelCtx, currentOption.customShell)
+	if err != nil {
 		// If the command got error, then cleanup the temporary folder
 		space.Cleanup()
-		return space, fmt.Errorf("err: %s, stderr: %s", err, stderr)
+		return space, err
 	}
 
 	return space, nil
@@ -186,9 +191,9 @@ func Create(options ...CreateOption) (Space, error) {
 func initGitWorkspace(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	_, stderr, err := SimpleExecuteCommand(ctx, path, nil, "git", "init", ".")
+	_, _, err := SimpleExecuteCommand(ctx, path, nil, "git", "init", ".")
 	if err != nil {
-		return fmt.Errorf("err: %s, stderr: %s", err, stderr)
+		return err
 	}
 
 	return nil
