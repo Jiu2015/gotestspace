@@ -20,7 +20,8 @@ func TestSampleShell(t *testing.T) {
 	}
 	defer workspace.Cleanup()
 
-	assert.Equal("hello111", workspace.GetOutputStr())
+	assert.Equal("hello", workspace.GetOutputStr())
+	assert.Equal("hello", workspace.GetOutputStr())
 }
 
 // Add environment example
