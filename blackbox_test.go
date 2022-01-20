@@ -246,7 +246,7 @@ rm -rf test
 	// It needs before command execute.
 	stdin.Write([]byte("delete refs/heads/branch2\n"))
 
-	command, err := workspace.ExecuteWithStdinStdout(cancelCtx, &stdin, &stdout,
+	command, err := workspace.ExecuteWithStdinStdout(cancelCtx, nil, &stdin, &stdout,
 		"cd test.git && git update-ref --stdin")
 	if !assert.NoError(err) {
 		assert.FailNowf("execute with stdin got error", "%v", err)

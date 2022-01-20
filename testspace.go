@@ -36,7 +36,7 @@ type Space interface {
 
 	// ExecuteWithStdinStdout will use custom stdin and stdout for command execute.
 	// WARNING: You must call command.Wait() method after you operate command!
-	ExecuteWithStdinStdout(ctx context.Context, stdin io.Reader, stdout io.Writer, shell string) (Commander, error)
+	ExecuteWithStdinStdout(ctx context.Context, env []string, stdin io.Reader, stdout io.Writer, shell string) (Commander, error)
 
 	// RegistrationCustomCleaner used for registration the cleaners func for clean other resources
 	// while the testing finished
@@ -143,10 +143,11 @@ func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (Command
 
 // ExecuteWithStdinStdout execute shell with custom stdin and stdout
 // The Commander will be the stdin
-func (w *workSpace) ExecuteWithStdinStdout(ctx context.Context, stdin io.Reader, stdout io.Writer,
-	shell string) (Commander, error) {
+func (w *workSpace) ExecuteWithStdinStdout(ctx context.Context, env []string, stdin io.Reader,
+	stdout io.Writer, shell string) (Commander, error) {
 	mixedShell := w.template + "\n" + shell
-	return NewTestSpaceCommand(ctx, w.path, w.env, stdin, stdout, nil,
+	mixedEnv := append(w.env, env...)
+	return NewTestSpaceCommand(ctx, w.path, mixedEnv, stdin, stdout, nil,
 		"/bin/bash", "-c", mixedShell)
 }
 
