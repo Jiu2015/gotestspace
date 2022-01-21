@@ -3,6 +3,7 @@ package testspace
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -32,6 +33,10 @@ type Space interface {
 	// ExecuteWithStdin Will enable stdin on the command, you can do a lot of advanced things.
 	// WARNING: You must call command.Wait() method after you operate command!
 	ExecuteWithStdin(ctx context.Context, shell string) (Commander, error)
+
+	// ExecuteWithStdinStdout will use custom stdin and stdout for command execute.
+	// WARNING: You must call command.Wait() method after you operate command!
+	ExecuteWithStdinStdout(ctx context.Context, env []string, stdin io.Reader, stdout io.Writer, shell string) (Commander, error)
 
 	// RegistrationCustomCleaner used for registration the cleaners func for clean other resources
 	// while the testing finished
@@ -129,9 +134,20 @@ func (w *workSpace) Execute(ctx context.Context, shell string) (stdout string, s
 }
 
 // ExecuteWithStdin execute shell with stdin
+// The Commander will be the stdin
 func (w *workSpace) ExecuteWithStdin(ctx context.Context, shell string) (Commander, error) {
 	mixedShell := w.template + "\n" + shell
-	return NewTestSpaceCommand(ctx, w.path, w.env, true, nil, nil,
+	return NewTestSpaceCommand(ctx, w.path, w.env, setStdinType, nil, nil,
+		"/bin/bash", "-c", mixedShell)
+}
+
+// ExecuteWithStdinStdout execute shell with custom stdin and stdout
+// The Commander will be the stdin
+func (w *workSpace) ExecuteWithStdinStdout(ctx context.Context, env []string, stdin io.Reader,
+	stdout io.Writer, shell string) (Commander, error) {
+	mixedShell := w.template + "\n" + shell
+	mixedEnv := append(w.env, env...)
+	return NewTestSpaceCommand(ctx, w.path, mixedEnv, stdin, stdout, nil,
 		"/bin/bash", "-c", mixedShell)
 }
 
